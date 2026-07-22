@@ -1,0 +1,8 @@
+/target
+# The 117MB weights stay out (over GitHub's file limit — shipped as a Release
+# asset), but the small runtime assets beside them are committed so CI can
+# package them with the Windows build.
+/models/*
+!/models/model.json
+!/models/mel_slaney.npy
+/ref/*.npy

@@ -1,0 +1,31 @@
+[package]
+name = "pulsemap"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winit = "0.29"
+wgpu = "30.0.0"
+pollster = "0.3"
+bytemuck = { version = "1", features = ["derive"] }
+env_logger = "0.11"
+log = "0.4"
+# CPU execution provider only — see the fidelity note in analyzer.rs. Dropping
+# the coreml feature also makes this build on non-Apple targets.
+ort = { version = "2.0.0-rc.12", features = ["ndarray"] }
+ndarray = "0.17.2"
+ndarray-npy = "0.10.0"
+rustfft = "6.4.1"
+symphonia = { version = "0.5", features = ["all"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+rodio = { version = "0.22.2", default-features = false, features = ["playback", "symphonia-all"] }
+glyphon = "0.12.0"
+rfd = { version = "0.17.2", default-features = false }
+# Drag a sample out of the window into a DAW. winit can't initiate an OS drag
+# on any platform; this wraps the AppKit/Win32/GTK calls that can.
+drag = "2.1.1"
+
+# Faster iteration: optimize deps even in debug (wgpu is painfully slow unoptimized).
+[profile.dev.package."*"]
+opt-level = 2

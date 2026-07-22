@@ -1,0 +1,36 @@
+name: windows-build
+
+# Builds the Windows .exe on a real Windows runner — the app is cross-platform
+# Rust, but cross-compiling wgpu + ort from macOS is a guessing game.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # lets you rebuild from the Actions tab without a push
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # rustup ships preinstalled on windows-latest, so there's no toolchain step.
+      - name: Build
+        run: cargo build --release --manifest-path native/Cargo.toml
+
+      - name: Stage package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist/models -Force
+          Copy-Item native/target/release/pulsemap.exe dist/
+          # ort links ONNX Runtime dynamically and drops its DLLs next to the
+          # binary — without these the exe won't start on a machine that has no
+          # ONNX Runtime installed.
+          Copy-Item native/target/release/*.dll dist/
+          Copy-Item native/models/model.json dist/models/
+          Copy-Item native/models/mel_slaney.npy dist/models/
+          Copy-Item README-windows.txt dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pulsemap-windows
+          path: dist/

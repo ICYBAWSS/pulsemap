@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseMap</title>
+    <script src="//unpkg.com/d3"></script>
+    <script src="//unpkg.com/force-graph"></script>
+    <style>
+        :root { --bg:#0e0f13; --panel:#171a21; --text:#e6e8ec; --dim:#8a929e; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; overflow: hidden; background: var(--bg); color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #graph-container { width: 100vw; height: 100vh; }
+
+        /* top bar: title + search */
+        #topbar {
+            position: fixed; top: 14px; left: 16px; z-index: 20;
+            display: flex; align-items: center; gap: 14px;
+        }
+        #title { font-weight: 700; letter-spacing: .5px; font-size: 18px; }
+        #title span { color: var(--dim); font-weight: 400; }
+        #search {
+            width: 240px; padding: 8px 12px; border-radius: 8px;
+            border: 1px solid #2a2f3a; background: var(--panel); color: var(--text);
+            font-size: 13px; outline: none;
+        }
+        #search:focus { border-color: #3d6bff; }
+
+        /* section legend / navigator */
+        #legend {
+            position: fixed; top: 60px; left: 16px; z-index: 20;
+            width: 190px; max-height: 78vh; overflow-y: auto;
+            background: rgba(23,26,33,.82); backdrop-filter: blur(8px);
+            border: 1px solid #232833; border-radius: 10px; padding: 8px;
+        }
+        #legend h4 { margin: 4px 6px 8px; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--dim); font-weight: 600; }
+        .legrow {
+            display: flex; align-items: center; gap: 8px; padding: 5px 6px;
+            border-radius: 6px; cursor: pointer; font-size: 13px;
+        }
+        .legrow:hover { background: #21262f; }
+        .swatch { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+        .legname { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .legcount { color: var(--dim); font-size: 11px; }
+
+        /* big hover banner: reflects whatever's under the cursor, always visible
+           at top-center. Plain DOM text — never fights with canvas rendering
+           the way in-canvas labels did (they blocked/overlapped nodes). */
+        #hoverBanner {
+            position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+            z-index: 20; max-width: 56vw; text-align: center;
+            font-size: 17px; font-weight: 600; letter-spacing: .2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            text-shadow: 0 1px 10px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.9);
+            pointer-events: none;
+        }
+        #hoverBanner .sec { font-weight: 700; }
+        #hoverBanner.idle { color: var(--dim); font-weight: 400; font-size: 14px; }
+
+        #hint {
+            position: fixed; bottom: 16px; left: 16px; z-index: 20;
+            font-size: 12px; color: var(--dim);
+        }
+        #export {
+            position: fixed; bottom: 44px; left: 16px; z-index: 20; display: none;
+            padding: 7px 12px; border-radius: 8px; cursor: pointer;
+            border: 1px solid #2a2f3a; background: var(--panel); color: var(--text);
+            font-size: 12px; font-family: inherit;
+        }
+        #export:hover { border-color: #3d6bff; }
+        #clear-cache {
+            position: fixed; bottom: 16px; right: 16px; z-index: 20;
+            padding: 6px 10px; border-radius: 6px; cursor: pointer;
+            border: 1px solid #2a2f3a; background: var(--panel); color: var(--dim);
+            font-size: 11px; font-family: inherit; transition: border-color .15s, color .15s;
+        }
+        #clear-cache:hover { border-color: #ff4d6d; color: var(--text); }
+
+        .loading-overlay {
+            position: fixed; inset: 0; display: flex; justify-content: center;
+            align-items: center; background: var(--bg); z-index: 1000;
+            transition: opacity .5s ease-out; color: var(--dim);
+        }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        /* Landing / drop-zone screen -- the whole point: no terminal, no
+           install steps. Just drag a folder in, or click to pick one. */
+        #drop {
+            position: fixed; inset: 0; z-index: 900; background: var(--bg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity .4s ease-out;
+        }
+        #drop.hidden { opacity: 0; pointer-events: none; }
+        #dropZone {
+            width: min(560px, 84vw); padding: 56px 32px; text-align: center;
+            border: 2px dashed #2e3441; border-radius: 20px; cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+        #dropZone.drag { border-color: #3d6bff; background: rgba(61,107,255,.06); }
+        #dropIcon { font-size: 40px; margin-bottom: 14px; opacity: .8; }
+        #dropTitle { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        #dropSub { color: var(--dim); font-size: 14px; margin-bottom: 22px; }
+        #dropPick {
+            padding: 10px 22px; border-radius: 10px; border: 1px solid #2a2f3a;
+            background: var(--panel); color: var(--text); font-size: 14px;
+            font-family: inherit; cursor: pointer;
+        }
+        #dropPick:hover { border-color: #3d6bff; }
+        #dropNote { margin-top: 22px; font-size: 12px; color: #57606f; }
+
+        /* Processing progress screen -- shown while sounds are analyzed in-browser. */
+        #progress {
+            position: fixed; inset: 0; z-index: 950; background: var(--bg);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #progress.show { display: flex; }
+        #progressLabel { font-size: 15px; margin-bottom: 16px; color: var(--text); }
+        #progressBarOuter { width: min(420px, 70vw); height: 6px; border-radius: 3px; background: #20242d; overflow: hidden; }
+        #progressBarInner { height: 100%; width: 0%; background: #3d6bff; transition: width .2s; }
+        #progressCount { margin-top: 10px; font-size: 12px; color: var(--dim); }
+    </style>
+</head>
+<body>
+    <div id="drop">
+        <div id="dropZone">
+            <div id="dropIcon">🎧</div>
+            <div id="dropTitle">Drop your sounds folder here</div>
+            <div id="dropSub">Everything is analyzed right here in your browser — nothing is uploaded anywhere.</div>
+            <button id="dropPick" type="button">or choose a folder…</button>
+            <input id="dropInput" type="file" webkitdirectory multiple style="display:none">
+        </div>
+        <div id="dropNote">First run downloads a small sound-recognition model (~30MB), then works offline.</div>
+    </div>
+
+    <div id="progress">
+        <div id="progressLabel">Getting ready…</div>
+        <div id="progressBarOuter"><div id="progressBarInner"></div></div>
+        <div id="progressCount"></div>
+    </div>
+
+    <div id="topbar">
+        <div id="title">PulseMap <span id="subtitle"></span></div>
+        <input id="search" placeholder="Search sounds, sections, tags…" autocomplete="off">
+    </div>
+    <div id="legend"><h4>Sections</h4><div id="legend-rows"></div></div>
+    <div id="hoverBanner" class="idle">Hover a sound to preview</div>
+    <button id="export"></button>
+    <div id="hint">Drag a sound into another section to reclassify it</div>
+    <button id="clear-cache" type="button">Clear Cache</button>
+    <div id="loading" class="loading-overlay hidden"><div>Loading your sounds…</div></div>
+    <div id="graph-container"></div>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

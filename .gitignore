@@ -1,0 +1,31 @@
+# Python envs
+venv/
+venv-clap/
+__pycache__/
+*.pyc
+
+# Collected training data (audio + downloads — do not commit/redistribute)
+training_data/
+
+# Cached model embeddings
+clap_embeddings.npz
+*.npz
+
+# Rust build output
+target/
+node_modules/
+
+# Model weights: 117MB, over GitHub's 100MB per-file limit. Ships as a Release
+# asset instead — see README-windows.txt. The small assets beside it
+# (model.json, mel_slaney.npy) ARE committed, so this is the only manual file.
+native/models/audio_model.onnx
+native/models/coreml_cache/
+
+# Sample libraries — large, and not needed to build.
+test_samples/
+
+# Credentials
+cookies.txt
+
+# macOS
+.DS_Store
