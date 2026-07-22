@@ -22,6 +22,14 @@ SETUP
 Windows SmartScreen will warn about an unsigned app — "More info" then
 "Run anyway". That's expected for a build that isn't code-signed.
 
+If you get an error about VCRUNTIME140.dll or MSVCP140.dll being missing,
+install the Microsoft Visual C++ Redistributable (x64) and try again:
+
+    https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+Most machines already have it — plenty of apps install it — so try running
+first and only grab this if it complains.
+
 USING IT
 --------
 - Drop a folder of samples onto the window, or click "Choose folder…".
