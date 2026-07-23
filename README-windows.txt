@@ -1,23 +1,15 @@
 PulseMap — Windows test build
 =============================
 
-One extra step: the 117MB audio model is too big for GitHub's file limit, so it
-is downloaded separately rather than being inside this zip.
+The 117MB audio model is too big to fit in this zip, so install.bat fetches it
+the first time you run — after that it just launches the app.
 
 SETUP
 -----
 1. Unzip this folder anywhere.
-2. Download "audio_model.onnx" from the project's Releases page.
-3. Put it in the "models" folder next to pulsemap.exe, so you have:
-
-     pulsemap.exe
-     onnxruntime.dll  (and any other .dll from the zip)
-     models\
-       audio_model.onnx     <- the one you just downloaded
-       model.json
-       mel_slaney.npy
-
-4. Run pulsemap.exe.
+2. Double-click install.bat.
+   - First run: it downloads the model (~117 MB, once) and starts the app.
+   - Every run after: it just starts the app.
 
 Windows SmartScreen will warn about an unsigned app — "More info" then
 "Run anyway". That's expected for a build that isn't code-signed.
@@ -48,3 +40,6 @@ Open a terminal in this folder and run:
 
 Any error will be printed there. Sending that text back is the most useful
 bug report.
+
+If install.bat says the download failed, the model may not be published yet —
+check the project's Releases page, or ask whoever sent you this build.

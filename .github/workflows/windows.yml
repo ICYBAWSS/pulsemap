@@ -29,6 +29,8 @@ jobs:
           Copy-Item native/models/model.json dist/models/
           Copy-Item native/models/mel_slaney.npy dist/models/
           Copy-Item README-windows.txt dist/
+          # First-run launcher: downloads the model, then starts the app.
+          Copy-Item install.bat dist/
 
       - uses: actions/upload-artifact@v4
         with:
