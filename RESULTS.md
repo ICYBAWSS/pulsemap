@@ -6,18 +6,32 @@ straddle train/test. Negative control (shuffled labels → chance) validates the
 harness. The number that matters is **balanced accuracy** (the corpus is ~84:1
 imbalanced; overall accuracy is dominated by the big classes).
 
-## ✅ BEST KNOWN APPROACH (ship this)
+## ✅ BEST KNOWN APPROACH
 
-**Frozen `laion/clap-htsat-unfused` embeddings + logistic head**, with:
+**Frozen `laion/clap-htsat-unfused` → supervised-contrastive projection → logistic,
+with augmented thin classes.** Pipeline:
 1. **Preprocessing**: silence-trim at `top_db=60` (not 30 — 30 clips cymbal/ride
    decay tails), decay preserved, CLAP repeatpad.
 2. **Label cleanup**: filename-vs-folder relabels (bracket-stripped keyword
    match; 337 fixes, e.g. 808→Bass ×49, Closed→Open Hat ×24, Snare→Clap ×100).
 3. **`_unsorted` recovery**: 103 files with confident filenames added as labels.
+4. **Supervised-contrastive projection**: small MLP (512→256→128) trained with
+   class-weighted CE + supervised-contrastive loss, then logistic on the
+   projected space. Learns a better-separated representation ON TOP of frozen
+   CLAP (no encoder finetune, no overfit). `head_battery.py`.
+5. **Augmentation of thin classes**: light effects (pitch/stretch/gain/noise),
+   CLAP-cosine quality gate (keep if ≥0.70 to source AND class unchanged),
+   TRAIN-ONLY, each aug tied to its source's leakage group. `augment.py`.
 
-**Result: overall 74.7% / balanced 62.5%, full 20-class taxonomy, leakage-safe.**
-Up from balanced 55.5% before cleanup. Reproduce: `build_dataset_v2.py` →
-`embeddings_v2.npz`, then a class-weighted `LogisticRegression(C=0.3)`.
+**Result: overall 78.3% / balanced 66.5%, full 20-class taxonomy, leakage-safe.**
+Progression: 55.5 (raw) → 62.5 (cleanup) → 65.4 (contrastive) → 66.5 (+aug).
+Reproduce: `build_dataset_v2.py` + `augment.py` → embeddings, then the
+contrastive-projection head from `final_stack.py`. (Contrastive numbers vary
+±~1 run-to-run; no fixed seed.)
+
+Note for shipping: the classifier is no longer a bare linear head — it's
+CLAP → StandardScaler → projection MLP → logistic. `model.json` export and the
+native Rust inference path both need updating to match.
 
 Taxonomy is a product requirement — do NOT merge classes (open/closed hat,
 cymbal/crash/ride, bass/808 are distinct to producers). Fix representation or
@@ -33,8 +47,18 @@ data, never collapse a class.
 | DSP feature augmentation | no gain | decay/centroid/flatness concat; CLAP dominates |
 | Within-family specialist heads | no gain | metallic info isn't in frozen CLAP embeddings |
 
-**Pattern: every model-side lever failed. The only wins were data-quality
-(label cleanup, preprocessing).** The lever is data, not model.
+## ✅ What WORKED (stacks, all honest)
+
+| lever | balanced gain | note |
+|---|---|---|
+| Label cleanup + preprocessing | 55.5 → 62.5 | data quality |
+| Supervised-contrastive projection | 62.5 → 65.4 | learned representation on frozen CLAP; the viable form of "train our own model" at our data scale |
+| Augmentation of thin classes | 65.4 → 66.5 | Rolls +16, Bass +7 recall; TRAIN-only, gated |
+
+Encoder finetune, encoder swaps, DSP features, raw specialist heads, and the
+encoder ensemble did NOT help (see above). The heavy-encoder path is a dead end
+at this data scale; the wins are all lightweight (better head/representation +
+more/cleaner data).
 
 ## Where the errors are
 
