@@ -87,7 +87,7 @@ def load_audio(path):
     try:
         y, _ = librosa.load(path, sr=SR, mono=True)
         if TRIM:
-            y = js_trim_silence(y, top_db=30)
+            y = js_trim_silence(y, top_db=60)  # 30 clipped cymbal/ride decay tails; see RESULTS.md
         if len(y) < 256:
             return None
         return y.astype(np.float32)
