@@ -23,8 +23,17 @@ with augmented thin classes.** Pipeline:
    CLAP-cosine quality gate (keep if ≥0.70 to source AND class unchanged),
    TRAIN-ONLY, each aug tied to its source's leakage group. `augment.py`.
 
-**Result: overall 78.3% / balanced 66.5%, full 20-class taxonomy, leakage-safe.**
-Progression: 55.5 (raw) → 62.5 (cleanup) → 65.4 (contrastive) → 66.5 (+aug).
+**Result: overall 83.5% / balanced 73.4%, full 20-class taxonomy, leakage-safe.**
+Progression (honest balanced): 55.5 (raw) → 62.5 (cleanup) → 65.4 (contrastive)
+→ 66.5 (+aug) → 73.4 (+kNN-consensus relabel, 1045 auto-fixes, TRAIN-ONLY so
+test stays honest). The dominant lever was fixing ~14.5% mislabeled training
+data found via cross-group kNN disagreement. `relabel_prep.py` (find + auto-fix
+obvious), `relabel_ui.py` (local ear-review UI for ambiguous, localhost:8777),
+`apply_honest.py` (apply + honest measure). Human review of the 2683 ambiguous
+adds more and counts legitimately in test.
+CAUTION: relabeling ALL data (incl. test) reads 79.7 balanced but is CIRCULAR
+(you moved test labels toward the model's opinion). Always relabel TRAIN-ONLY
+for the honest number, or use human-verified labels which are real ground truth.
 Reproduce: `build_dataset_v2.py` + `augment.py` → embeddings, then the
 contrastive-projection head from `final_stack.py`. (Contrastive numbers vary
 ±~1 run-to-run; no fixed seed.)
