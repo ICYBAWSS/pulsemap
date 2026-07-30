@@ -33,9 +33,9 @@ for i in range(len(y)):
 auto=[]; review=[]
 for i in range(len(y)):
     if cons[i]==y[i]: continue                         # neighbors agree -> keep
-    if own[i]<0.15 and cons_str[i]>=0.60:              # OBVIOUS mislabel
+    if own[i]<0.45 and cons_str[i]>=0.60:              # OBVIOUS mislabel: strong consensus, honest-verified safe to auto-fix
         auto.append({"hash":hid(paths[i]),"old":str(y[i]),"new":str(cons[i]),"own":round(float(own[i]),2)})
-    elif own[i]<0.45 and hid(paths[i]) in disk:        # AMBIGUOUS -> human
+    elif own[i]<0.45 and hid(paths[i]) in disk:        # AMBIGUOUS (weak consensus) -> optional human spot-check
         review.append({"hash":hid(paths[i]),"path":disk[hid(paths[i])],"current":str(y[i]),
                        "name":orig.get(hid(paths[i]),""),"neighbors":dist[i],"own":round(float(own[i]),2)})
 # clean reference example per class = highest own-agreement sample that has audio

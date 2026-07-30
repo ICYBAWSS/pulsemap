@@ -29,8 +29,12 @@ Progression (honest balanced): 55.5 (raw) → 62.5 (cleanup) → 65.4 (contrasti
 test stays honest). The dominant lever was fixing ~14.5% mislabeled training
 data found via cross-group kNN disagreement. `relabel_prep.py` (find + auto-fix
 obvious), `relabel_ui.py` (local ear-review UI for ambiguous, localhost:8777),
-`apply_honest.py` (apply + honest measure). Human review of the 2683 ambiguous
-adds more and counts legitimately in test.
+`apply_honest.py` (apply + honest measure). Human review is now OPTIONAL: a threshold sweep (honest, train-only) showed
+auto-fixing more never hurts and plateaus ~72.5 (logistic). Expanded auto-fix
+to 1537 (own<0.45 & consensus>=0.6) gives balanced 73.6 / overall 84.5 with
+ZERO manual review. The ~2191 weak-consensus leftovers are genuinely ambiguous
+(a human squints too); reviewing them buys ~1-2 pts for hours of work. Use the
+UI (relabel_ui.py) for a 5-min spot-check of auto-fixes, not a full pass.
 CAUTION: relabeling ALL data (incl. test) reads 79.7 balanced but is CIRCULAR
 (you moved test labels toward the model's opinion). Always relabel TRAIN-ONLY
 for the honest number, or use human-verified labels which are real ground truth.
