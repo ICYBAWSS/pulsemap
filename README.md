@@ -1,11 +1,10 @@
 # PulseMap
 
 A desktop app that maps a folder of drum samples into a visual space you can
-browse by ear. Every sound is embedded with a CLAP audio model, classified into
-a section (Kick, Snare, Closed Hat, …) and laid out so that sounds near each
-other on screen actually sound alike.
+browse by ear. Every sound is embedded with a CLAP audio model. It organizes each sound into
+a section (Kick, Snare, Closed Hat, …) and laid out within that sections that similar sounds end up together.
 
-Everything runs locally. No audio leaves the machine.
+Everything runs locally.
 
 ## What it does
 
@@ -45,11 +44,6 @@ model.json           # classifier head, in git
 mel_slaney.npy       # mel filterbank, in git
 ```
 
-## Windows build
-
-Pushes to `main` build a Windows binary on CI. Grab it from the
-[Actions](../../actions) tab → latest run → `pulsemap-windows` artifact. The
-zip includes `README-windows.txt` with setup steps for a non-developer.
 
 ## Layout
 
