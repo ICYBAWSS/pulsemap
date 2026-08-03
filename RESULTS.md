@@ -18,7 +18,7 @@ with augmented thin classes.** Pipeline:
 4. **Supervised-contrastive projection**: small MLP (512→256→128) trained with
    class-weighted CE + supervised-contrastive loss, then logistic on the
    projected space. Learns a better-separated representation ON TOP of frozen
-   CLAP (no encoder finetune, no overfit). `research/head_battery.py`.
+   CLAP (no encoder finetune, no overfit).
 5. **Augmentation of thin classes**: light effects (pitch/stretch/gain/noise),
    CLAP-cosine quality gate (keep if ≥0.70 to source AND class unchanged),
    TRAIN-ONLY, each aug tied to its source's leakage group. `augment.py`.
@@ -27,28 +27,27 @@ with augmented thin classes.** Pipeline:
 Progression (honest balanced): 55.5 (raw) → 62.5 (cleanup) → 65.4 (contrastive)
 → 66.5 (+aug) → 73.4 (+kNN-consensus relabel, 1045 auto-fixes, TRAIN-ONLY so
 test stays honest). The dominant lever was fixing ~14.5% mislabeled training
-data found via cross-group kNN disagreement. `relabel_prep.py` (find + auto-fix
-obvious), `relabel_ui.py` (local ear-review UI for ambiguous, localhost:8777),
-`research/apply_honest.py` (apply + honest measure). Human review is now OPTIONAL: a threshold sweep (honest, train-only) showed
+data found via cross-group kNN disagreement. `relabel_prep.py` (find + auto-fix obvious),
+`relabel_ui.py` (local ear-review UI for ambiguous, localhost:8777). Human review is now OPTIONAL: a threshold sweep (honest, train-only) showed
 auto-fixing more never hurts and plateaus ~72.5 (logistic). Expanded auto-fix
 to 1537 (own<0.45 & consensus>=0.6) gives balanced 73.6 / overall 84.5 with
 ZERO manual review. The ~2191 weak-consensus leftovers are genuinely ambiguous
 (a human squints too); reviewing them buys ~1-2 pts for hours of work. Use the
-UI (relabel_ui.py) for a 5-min spot-check of auto-fixes, not a full pass.
+UI (`relabel_ui.py`) for a 5-min spot-check of auto-fixes, not a full pass.
 CAUTION: relabeling ALL data (incl. test) reads 79.7 balanced but is CIRCULAR
 (you moved test labels toward the model's opinion). Always relabel TRAIN-ONLY
 for the honest number, or use human-verified labels which are real ground truth.
-Reproduce: `build_dataset_v2.py` + `augment.py` → embeddings, then the
-contrastive-projection head from `research/final_stack.py`. (Contrastive numbers vary
-±~1 run-to-run; no fixed seed.)
+Reproduce: `build_dataset_v2.py` + `augment.py` → embeddings, then
+`export_final_model.py` trains the contrastive-projection head. (Contrastive
+numbers vary ±~1 run-to-run; no fixed seed.)
 
 SHIPPED (native app): `export_final_model.py` trains the full pipeline on all
 cleaned+relabeled+augmented data and writes `native/models/model.json` (20-class,
 with projection layers). `classify.rs` runs CLAP → scaler → MLP → L2norm →
 logistic; verified bit-for-bit against numpy. Native trim aligned to top_db=60.
 Unsorted threshold calibrated to 0.50 (~5% on real sounds). End-to-end checked
-on test_samples via the `classify_folder` bin. (Legacy root `model.json` +
-python `legacy/export_model.py` are the OLD 18-class linear head — unused by the app.)
+on test_samples via the `classify_folder` bin. (The old 18-class linear-head classifier this superseded is gone; see git
+history before this cleanup if you need it.)
 
 Taxonomy is a product requirement — do NOT merge classes (open/closed hat,
 cymbal/crash/ride, bass/808 are distinct to producers). Fix representation or
