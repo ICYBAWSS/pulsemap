@@ -2,8 +2,7 @@ PulseMap — macOS build
 =======================
 
 Requires Apple Silicon (M1 or later). This build is not signed/notarized, so
-macOS Gatekeeper will block the first launch — that's expected for a build
-distributed outside the App Store.
+macOS Gatekeeper will block the first launch.
 
 SETUP
 -----

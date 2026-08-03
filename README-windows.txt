@@ -12,14 +12,14 @@ SETUP
    - Every run after: it just starts the app.
 
 Windows SmartScreen will warn about an unsigned app — "More info" then
-"Run anyway". That's expected for a build that isn't code-signed.
+"Run anyway".
 
 If you get an error about VCRUNTIME140.dll or MSVCP140.dll being missing,
 install the Microsoft Visual C++ Redistributable (x64) and try again:
 
     https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-Most machines already have it — plenty of apps install it — so try running
+Most machines already have it, so try running
 first and only grab this if it complains.
 
 USING IT
@@ -30,7 +30,6 @@ USING IT
 - Cmd/Ctrl-drag a sound onto another group to reclassify it.
 - Click the "PulseMap" title to go back to the start screen.
 
-Everything is analyzed locally. No audio leaves the machine.
 
 IF IT DOESN'T START
 -------------------
