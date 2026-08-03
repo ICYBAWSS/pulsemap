@@ -103,7 +103,7 @@ impl Analyzer {
         if dur <= 0.0 || dur > MAX_ONESHOT_SEC {
             return None; // one-shots only, mirroring the browser pipeline
         }
-        let trimmed = crate::audio::trim_silence(&wave, 30.0, 1024);
+        let trimmed = crate::audio::trim_silence(&wave, 60.0, 1024);
         let feats = input_features(trimmed, &self.mel_filters);
         let raw = self.embed(feats).ok()?;
         let emb = l2_normalize(&raw);

@@ -42,9 +42,13 @@ Reproduce: `build_dataset_v2.py` + `augment.py` → embeddings, then the
 contrastive-projection head from `final_stack.py`. (Contrastive numbers vary
 ±~1 run-to-run; no fixed seed.)
 
-Note for shipping: the classifier is no longer a bare linear head — it's
-CLAP → StandardScaler → projection MLP → logistic. `model.json` export and the
-native Rust inference path both need updating to match.
+SHIPPED (native app): `export_final_model.py` trains the full pipeline on all
+cleaned+relabeled+augmented data and writes `native/models/model.json` (20-class,
+with projection layers). `classify.rs` runs CLAP → scaler → MLP → L2norm →
+logistic; verified bit-for-bit against numpy. Native trim aligned to top_db=60.
+Unsorted threshold calibrated to 0.50 (~5% on real sounds). End-to-end checked
+on test_samples via the `classify_folder` bin. (Legacy root `model.json` +
+python `export_model.py` are the OLD 18-class linear head — unused by the app.)
 
 Taxonomy is a product requirement — do NOT merge classes (open/closed hat,
 cymbal/crash/ride, bass/808 are distinct to producers). Fix representation or

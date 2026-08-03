@@ -29,3 +29,6 @@ cookies.txt
 
 # macOS
 .DS_Store
+
+# build logs
+native/build*.log

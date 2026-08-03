@@ -35,14 +35,37 @@ use serde::Deserialize;
 /// head is better on both at the same pile size.)
 const MIN_CONFIDENCE: f32 = 0.49;
 
+fn default_min_conf() -> f32 {
+    MIN_CONFIDENCE
+}
+
+/// CLAP -> scaler -> MLP(512-256-128, relu) -> L2norm -> logistic(128-NC).
+/// The contrastive-trained projection (`proj_*`) is what lifted balanced
+/// accuracy over the bare logistic head — see RESULTS.md.
 #[derive(Deserialize)]
 pub struct Model {
     pub labels: Vec<String>,
     scaler_mean: Vec<f32>,
     scaler_scale: Vec<f32>,
-    /// [n_classes][embedding_dim]
+    proj_w1: Vec<Vec<f32>>, // [256][512]
+    proj_b1: Vec<f32>,      // [256]
+    proj_w2: Vec<Vec<f32>>, // [128][256]
+    proj_b2: Vec<f32>,      // [128]
+    /// [n_classes][proj_dim]
     coef: Vec<Vec<f32>>,
     intercept: Vec<f32>,
+    /// Below this predicted probability -> Unsorted. Calibrated at export to
+    /// send ~5% of a library to the pile; falls back to the old constant.
+    #[serde(default = "default_min_conf")]
+    min_confidence: f32,
+}
+
+/// y = W·x + b for each row of W.
+fn affine(w: &[Vec<f32>], b: &[f32], x: &[f32]) -> Vec<f32> {
+    w.iter()
+        .zip(b)
+        .map(|(row, &bias)| row.iter().zip(x).map(|(a, c)| a * c).sum::<f32>() + bias)
+        .collect()
 }
 
 #[derive(Debug, Clone)]
@@ -68,13 +91,17 @@ impl Model {
             .map(|((&x, &m), &s)| (x - m) / s)
             .collect();
 
-        // logits = coef @ x + intercept
-        let logits: Vec<f32> = self
-            .coef
-            .iter()
-            .zip(&self.intercept)
-            .map(|(w, &b)| w.iter().zip(&scaled).map(|(a, c)| a * c).sum::<f32>() + b)
-            .collect();
+        // projection: relu(W1·x + b1) -> W2·h + b2 -> L2-normalize
+        let mut h1 = affine(&self.proj_w1, &self.proj_b1, &scaled);
+        for v in &mut h1 {
+            *v = v.max(0.0);
+        }
+        let h2 = affine(&self.proj_w2, &self.proj_b2, &h1);
+        let norm = h2.iter().map(|x| x * x).sum::<f32>().sqrt().max(1e-9);
+        let z: Vec<f32> = h2.iter().map(|x| x / norm).collect();
+
+        // logits = coef @ z + intercept
+        let logits: Vec<f32> = affine(&self.coef, &self.intercept, &z);
 
         // softmax, shifted by the max for numerical stability
         let max = logits.iter().cloned().fold(f32::MIN, f32::max);
@@ -86,7 +113,7 @@ impl Model {
         ranked.sort_by(|a, b| b.1.total_cmp(&a.1));
 
         let (best, confidence) = ranked[0];
-        let section = if confidence >= MIN_CONFIDENCE {
+        let section = if confidence >= self.min_confidence {
             self.labels[best].clone()
         } else {
             "Unsorted".to_string()

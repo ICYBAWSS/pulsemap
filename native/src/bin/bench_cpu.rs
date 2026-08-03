@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut feats = Vec::new();
     for f in &files[..n] {
         let w = decode_48k_mono(f)?;
-        feats.push(input_features(trim_silence(&w, 30.0, 1024), &mel));
+        feats.push(input_features(trim_silence(&w, 60.0, 1024), &mel));
     }
     let (h, w) = (feats[0].shape()[0], feats[0].shape()[1]);
     println!("{n} files, CPU EP\n");
