@@ -18,7 +18,7 @@ with augmented thin classes.** Pipeline:
 4. **Supervised-contrastive projection**: small MLP (512→256→128) trained with
    class-weighted CE + supervised-contrastive loss, then logistic on the
    projected space. Learns a better-separated representation ON TOP of frozen
-   CLAP (no encoder finetune, no overfit). `head_battery.py`.
+   CLAP (no encoder finetune, no overfit). `research/head_battery.py`.
 5. **Augmentation of thin classes**: light effects (pitch/stretch/gain/noise),
    CLAP-cosine quality gate (keep if ≥0.70 to source AND class unchanged),
    TRAIN-ONLY, each aug tied to its source's leakage group. `augment.py`.
@@ -29,7 +29,7 @@ Progression (honest balanced): 55.5 (raw) → 62.5 (cleanup) → 65.4 (contrasti
 test stays honest). The dominant lever was fixing ~14.5% mislabeled training
 data found via cross-group kNN disagreement. `relabel_prep.py` (find + auto-fix
 obvious), `relabel_ui.py` (local ear-review UI for ambiguous, localhost:8777),
-`apply_honest.py` (apply + honest measure). Human review is now OPTIONAL: a threshold sweep (honest, train-only) showed
+`research/apply_honest.py` (apply + honest measure). Human review is now OPTIONAL: a threshold sweep (honest, train-only) showed
 auto-fixing more never hurts and plateaus ~72.5 (logistic). Expanded auto-fix
 to 1537 (own<0.45 & consensus>=0.6) gives balanced 73.6 / overall 84.5 with
 ZERO manual review. The ~2191 weak-consensus leftovers are genuinely ambiguous
@@ -39,7 +39,7 @@ CAUTION: relabeling ALL data (incl. test) reads 79.7 balanced but is CIRCULAR
 (you moved test labels toward the model's opinion). Always relabel TRAIN-ONLY
 for the honest number, or use human-verified labels which are real ground truth.
 Reproduce: `build_dataset_v2.py` + `augment.py` → embeddings, then the
-contrastive-projection head from `final_stack.py`. (Contrastive numbers vary
+contrastive-projection head from `research/final_stack.py`. (Contrastive numbers vary
 ±~1 run-to-run; no fixed seed.)
 
 SHIPPED (native app): `export_final_model.py` trains the full pipeline on all
