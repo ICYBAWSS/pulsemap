@@ -57,11 +57,12 @@ mel_slaney.npy       # mel filterbank, in git
 
 ## Accuracy
 
-The classifier head sits at **73.3%** on a leakage-safe held-out split. That
-number is honest rather than flattering: earlier figures were inflated by the
-same sample pack appearing on both sides of the split. Weakest classes are the
-ones that are genuinely ambiguous by ear (rolls vs. sustained snares, closed vs.
-open hats at short decays).
+**~85% overall / ~75% balanced accuracy** across the full 20-class taxonomy,
+measured on a leakage-safe held-out split (no sample pack or near-duplicate
+crosses train/test). Balanced accuracy weights every class equally, so it's
+dragged down by rarer, genuinely ambiguous classes (rolls vs. sustained snares,
+closed vs. open hats at short decays); overall accuracy reflects what you'd
+actually feel using it. Full investigation and numbers in [RESULTS.md](RESULTS.md).
 
 Reclassifying by drag is the intended escape hatch, and corrections feed back
 into the layout.
