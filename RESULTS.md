@@ -48,7 +48,7 @@ with projection layers). `classify.rs` runs CLAP → scaler → MLP → L2norm �
 logistic; verified bit-for-bit against numpy. Native trim aligned to top_db=60.
 Unsorted threshold calibrated to 0.50 (~5% on real sounds). End-to-end checked
 on test_samples via the `classify_folder` bin. (Legacy root `model.json` +
-python `export_model.py` are the OLD 18-class linear head — unused by the app.)
+python `legacy/export_model.py` are the OLD 18-class linear head — unused by the app.)
 
 Taxonomy is a product requirement — do NOT merge classes (open/closed hat,
 cymbal/crash/ride, bass/808 are distinct to producers). Fix representation or
