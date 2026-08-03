@@ -6,7 +6,7 @@ setlocal
 cd /d "%~dp0"
 
 set "MODEL=models\audio_model.onnx"
-set "URL=https://github.com/ICYBAWSS/pulsemap/releases/download/v0.1/audio_model.onnx"
+set "URL=https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx/resolve/main/audio_model.onnx"
 
 if not exist "%MODEL%" (
   echo Downloading the audio model. This happens once, ~117 MB...

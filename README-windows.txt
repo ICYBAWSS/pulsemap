@@ -41,5 +41,7 @@ Open a terminal in this folder and run:
 Any error will be printed there. Sending that text back is the most useful
 bug report.
 
-If install.bat says the download failed, the model may not be published yet —
-check the project's Releases page, or ask whoever sent you this build.
+If install.bat says the download failed, check your internet connection and
+re-run it. The model is hosted here if you want to grab it manually and drop it
+into the models\ folder:
+  https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx

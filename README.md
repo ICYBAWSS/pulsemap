@@ -22,9 +22,15 @@ Everything runs locally. No audio leaves the machine.
 
 ## Running from source
 
-Needs a Rust toolchain. The model weights are not in git (117 MB, over GitHub's
-file limit) — download `audio_model.onnx` from the
-[Releases](../../releases) page and put it in `native/models/`.
+Needs a Rust toolchain. The CLAP encoder weights are not in git (117 MB) —
+download `audio_model.onnx` from
+[Hugging Face](https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx)
+and put it in `native/models/`:
+
+```sh
+curl -L -o native/models/audio_model.onnx \
+  https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx/resolve/main/audio_model.onnx
+```
 
 ```sh
 cd native
@@ -34,7 +40,7 @@ cargo run --release
 `native/models/` should then contain:
 
 ```
-audio_model.onnx     # from Releases
+audio_model.onnx     # from Hugging Face (above)
 model.json           # classifier head, in git
 mel_slaney.npy       # mel filterbank, in git
 ```
