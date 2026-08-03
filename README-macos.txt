@@ -6,18 +6,15 @@ macOS Gatekeeper will block the first launch.
 
 SETUP
 -----
-1. Unzip this folder anywhere.
-2. Right-click "install.command" -> "Open" -> "Open" again in the dialog.
-   (Double-clicking directly will just get blocked with no way to proceed —
-   right-click "Open" is the one-time exception that lets it run.)
-3. It downloads the audio model (~117 MB, once) and launches the app.
+1. Open the .dmg, drag PulseMap.app to Applications.
+2. This build is unsigned (no Apple Developer account), so Gatekeeper blocks
+   the first launch. Right-click PulseMap.app -> "Open" -> "Open" again in
+   the dialog. (Plain double-click just gets blocked with no way through —
+   right-click "Open" is the one-time exception.)
+3. After that, launch it normally any way you like.
 
-Later launches: right-click "install.command" -> "Open" once more, or just
-double-click "pulsemap" directly (it only needs the Gatekeeper exception once
-per file).
-
-If macOS still refuses to open it: System Settings -> Privacy & Security ->
-scroll down to the blocked-app notice -> "Open Anyway".
+If macOS still refuses: System Settings -> Privacy & Security -> scroll to
+the blocked-app notice -> "Open Anyway".
 
 USING IT
 --------
@@ -31,9 +28,9 @@ Everything is analyzed locally. No audio leaves the machine.
 
 IF IT DOESN'T START
 --------------------
-Open Terminal, cd into this folder, and run:
+Open Terminal and run:
 
-    ./pulsemap
+    /Applications/PulseMap.app/Contents/MacOS/pulsemap
 
 Any error will be printed there. Sending that text back is the most useful
 bug report.
