@@ -70,7 +70,16 @@ jobs:
           mkdir -p dist/dmgroot
           cp -R dist/PulseMap.app dist/dmgroot/
           ln -s /Applications dist/dmgroot/Applications
-          hdiutil create -volname "PulseMap" -srcfolder dist/dmgroot -ov -format UDZO pulsemap-macos-arm64.dmg
+          # Spotlight (mds) can briefly hold a lock on a just-copied folder,
+          # making hdiutil fail with "Resource busy" — retry past that.
+          for i in 1 2 3; do
+            if hdiutil create -volname "PulseMap" -srcfolder dist/dmgroot -ov -format UDZO pulsemap-macos-arm64.dmg; then
+              break
+            fi
+            echo "hdiutil create failed (attempt $i), retrying..."
+            sleep 5
+          done
+          test -f pulsemap-macos-arm64.dmg
 
       - uses: actions/upload-artifact@v4
         with:
