@@ -2048,13 +2048,21 @@ fn main() {
                     }
 
                     WindowEvent::RedrawRequested => match state.render() {
-                        RenderOutcome::Rendered | RenderOutcome::Skip => {}
+                        RenderOutcome::Rendered => {}
+                        // Timed out / occluded (e.g. surface not ready yet on
+                        // macOS) — try again next frame instead of parking blank.
+                        RenderOutcome::Skip => window.request_redraw(),
                         RenderOutcome::Reconfigure => state.resize(state.size),
                         RenderOutcome::Fatal => log::warn!("surface validation error"),
                     },
 
                     _ => {}
                 },
+
+                // Fires once the surface is actually usable (macOS/Windows); without
+                // this the window opens with an undrawn surface and stays blank
+                // until the first WindowEvent triggers a request_redraw().
+                Event::Resumed => window.request_redraw(),
 
                 Event::AboutToWait => {
                     // Single kickoff path for both drag-drop and the picker.
