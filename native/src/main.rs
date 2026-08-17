@@ -524,8 +524,16 @@ impl State {
     async fn new(window: Arc<winit::window::Window>) -> Self {
         let size = window.inner_size();
         let ui_scale = window.scale_factor() as f32;
+        // Vulkan adapter/instance enumeration is known to hang indefinitely on a
+        // chunk of real Windows machines (flaky GPU drivers, or overlay software
+        // like Discord/RTSS/GeForce Experience hooking vulkan-1.dll). That hang
+        // happens inside the block_on below, on the thread that owns the window's
+        // message loop, so Windows marks the window "(Not Responding)" forever.
+        // DX12 doesn't share that failure mode and every target Windows version
+        // has it, so skip Vulkan there entirely instead of using PRIMARY.
+        let backends = if cfg!(windows) { wgpu::Backends::DX12 } else { wgpu::Backends::PRIMARY };
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::PRIMARY,
+            backends,
             ..wgpu::InstanceDescriptor::new_without_display_handle()
         });
         let surface = instance.create_surface(window.clone()).unwrap();
