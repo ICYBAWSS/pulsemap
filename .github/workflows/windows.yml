@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch: # lets you rebuild from the Actions tab without a push
 
+permissions:
+  contents: write # needed to upload the release asset
+
 jobs:
   build:
     runs-on: windows-latest
@@ -40,3 +43,13 @@ jobs:
         with:
           name: pulsemap-windows
           path: dist/
+
+      - name: Zip for release
+        shell: pwsh
+        run: Compress-Archive -Path dist/* -DestinationPath pulsemap-windows.zip
+
+      - name: Publish to v1.0 release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0
+          files: pulsemap-windows.zip

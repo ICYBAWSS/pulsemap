@@ -1,0 +1,83 @@
+name: macos-build
+
+# Builds the .app + .dmg on a real macOS (Apple Silicon) runner and publishes
+# them to the v1.0 release, mirroring windows.yml.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to upload the release asset
+
+jobs:
+  build:
+    runs-on: macos-14 # Apple Silicon runner
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: cargo build --release --manifest-path native/Cargo.toml
+
+      - name: Fetch CLAP model
+        run: |
+          mkdir -p native/models
+          curl -L -o native/models/audio_model.onnx \
+            https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx/resolve/main/audio_model.onnx
+
+      - name: Assemble .app bundle
+        run: |
+          set -e
+          APP=dist/PulseMap.app
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp native/target/release/pulsemap "$APP/Contents/MacOS/pulsemap"
+          cp -R native/models "$APP/Contents/Resources/models"
+          cat > "$APP/Contents/Info.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleName</key>
+              <string>PulseMap</string>
+              <key>CFBundleDisplayName</key>
+              <string>PulseMap</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.pulsemap.app</string>
+              <key>CFBundleVersion</key>
+              <string>1.0</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleExecutable</key>
+              <string>pulsemap</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>11.0</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          # Ad-hoc sign, --deep so the signature covers Resources too — an
+          # unsigned/partially-signed bundle is what macOS reports as "damaged".
+          codesign --force --deep -s - "$APP"
+          codesign --verify --deep --strict "$APP"
+
+      - name: Create .dmg
+        run: |
+          set -e
+          mkdir -p dist/dmgroot
+          cp -R dist/PulseMap.app dist/dmgroot/
+          ln -s /Applications dist/dmgroot/Applications
+          hdiutil create -volname "PulseMap" -srcfolder dist/dmgroot -ov -format UDZO pulsemap-macos-arm64.dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pulsemap-macos
+          path: pulsemap-macos-arm64.dmg
+
+      - name: Publish to v1.0 release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0
+          files: pulsemap-macos-arm64.dmg
