@@ -5,6 +5,7 @@ name: macos-build
 on:
   push:
     branches: [main]
+    paths: [native/**, .github/workflows/macos.yml]
   workflow_dispatch:
 
 permissions:

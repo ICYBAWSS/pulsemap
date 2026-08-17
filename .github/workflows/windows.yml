@@ -5,6 +5,7 @@ name: windows-build
 on:
   push:
     branches: [main]
+    paths: [native/**, .github/workflows/windows.yml]
   workflow_dispatch: # lets you rebuild from the Actions tab without a push
 
 permissions:
