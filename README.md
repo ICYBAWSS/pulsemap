@@ -13,7 +13,7 @@ Everything runs locally.
 - **Drag into your DAW.** A plain drag hands the actual file to the OS, so you
   can drop it straight onto a track.
 - **Cmd/Ctrl-drag to reclassify.** Pull a sound onto another group and it is
-  re-placed next to its nearest match inside that group, gradient and all.
+  re-placed next to its nearest match inside that group.
   Corrections persist to `~/.pulsemap/corrections.json` and survive rebuilds.
 - **Add folders incrementally.** The map re-solves over the union; already
   analyzed files hit the embedding cache and skip the model entirely.
@@ -63,11 +63,11 @@ mel_slaney.npy       # mel filterbank, in git
 ## Accuracy
 
 **~85% overall / ~75% balanced accuracy** across the full 20-class taxonomy,
-measured on a leakage-safe held-out split (no sample pack or near-duplicate
+measured on a leakage safe split (no sample pack or near-duplicate
 crosses train/test). Balanced accuracy weights every class equally, so it's
 dragged down by rarer, genuinely ambiguous classes (rolls vs. sustained snares,
 closed vs. open hats at short decays); overall accuracy reflects what you'd
 actually feel using it. Full investigation and numbers in [RESULTS.md](RESULTS.md).
 
 Reclassifying by drag is the intended escape hatch, and corrections feed back
-into the layout.
+into the layout (but not the model).
