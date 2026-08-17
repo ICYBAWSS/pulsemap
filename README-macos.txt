@@ -7,14 +7,17 @@ macOS Gatekeeper will block the first launch.
 SETUP
 -----
 1. Open the .dmg, drag PulseMap.app to Applications.
-2. This build is unsigned (no Apple Developer account), so Gatekeeper blocks
-   the first launch. Right-click PulseMap.app -> "Open" -> "Open" again in
-   the dialog. (Plain double-click just gets blocked with no way through —
-   right-click "Open" is the one-time exception.)
-3. After that, launch it normally any way you like.
+2. Try to open it — Gatekeeper will block it (unsigned, no Apple Developer
+   account). Go to System Settings -> Privacy & Security -> scroll down to
+   the blocked-app notice -> "Open Anyway". Launch it once more from
+   Applications or Spotlight and it'll go through.
+3. If "Open Anyway" doesn't appear, right-click PulseMap.app -> "Open" ->
+   "Open" again in the dialog. If that still doesn't work, open Terminal
+   and run:
 
-If macOS still refuses: System Settings -> Privacy & Security -> scroll to
-the blocked-app notice -> "Open Anyway".
+       xattr -dr com.apple.quarantine /Applications/PulseMap.app
+
+After the first successful launch, open it normally any way you like.
 
 USING IT
 --------

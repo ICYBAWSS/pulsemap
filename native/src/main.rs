@@ -25,17 +25,22 @@ use winit::{
 };
 
 /// Runtime asset folder holding `audio_model.onnx`, `mel_slaney.npy` and
-/// `model.json`. Next to the executable in a distributed build, falling back to
+/// `model.json`. Next to the executable in a distributed build, or in
+/// `Contents/Resources` inside a macOS .app (only code may live in
+/// `Contents/MacOS`, or codesign refuses to seal the bundle), falling back to
 /// the source tree when running from cargo. A compiled-in absolute path only
 /// resolves on the machine that built the binary, so it can't be shipped.
 fn asset_dir() -> PathBuf {
-    let beside_exe = std::env::current_exe()
-        .ok()
-        .and_then(|e| e.parent().map(|p| p.join("models")));
-    match beside_exe {
-        Some(p) if p.join("audio_model.onnx").is_file() => p,
-        _ => PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/models")),
+    let exe_dir = std::env::current_exe().ok().and_then(|e| e.parent().map(PathBuf::from));
+    let candidates = exe_dir.into_iter().flat_map(|d| {
+        [d.join("models"), d.join("../Resources/models")]
+    });
+    for p in candidates {
+        if p.join("audio_model.onnx").is_file() {
+            return p;
+        }
     }
+    PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/models"))
 }
 
 // ---- GPU data ---------------------------------------------------------------

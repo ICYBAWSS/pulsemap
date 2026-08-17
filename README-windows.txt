@@ -1,15 +1,10 @@
 PulseMap — Windows test build
 =============================
 
-The 117MB audio model is too big to fit in this zip, so install.bat fetches it
-the first time you run — after that it just launches the app.
-
 SETUP
 -----
 1. Unzip this folder anywhere.
-2. Double-click install.bat.
-   - First run: it downloads the model (~117 MB, once) and starts the app.
-   - Every run after: it just starts the app.
+2. Double-click pulsemap.exe.
 
 Windows SmartScreen will warn about an unsigned app — "More info" then
 "Run anyway".
@@ -39,8 +34,3 @@ Open a terminal in this folder and run:
 
 Any error will be printed there. Sending that text back is the most useful
 bug report.
-
-If install.bat says the download failed, check your internet connection and
-re-run it. The model is hosted here if you want to grab it manually and drop it
-into the models\ folder:
-  https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx

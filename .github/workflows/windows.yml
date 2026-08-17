@@ -17,20 +17,24 @@ jobs:
       - name: Build
         run: cargo build --release --manifest-path native/Cargo.toml
 
+      - name: Fetch CLAP model
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path native/models -Force
+          Invoke-WebRequest -Uri "https://huggingface.co/icybawss/clap-htsat-unfused-audio-encoder-onnx/resolve/main/audio_model.onnx" -OutFile native/models/audio_model.onnx
+
       - name: Stage package
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist/models -Force
           Copy-Item native/target/release/pulsemap.exe dist/
-          # ort links ONNX Runtime dynamically and drops its DLLs next to the
-          # binary — without these the exe won't start on a machine that has no
-          # ONNX Runtime installed.
+          # ONNX Runtime is statically linked into pulsemap.exe. DirectML is the
+          # one runtime dependency that has to ship as a DLL alongside it.
           Copy-Item native/target/release/*.dll dist/
+          Copy-Item native/models/audio_model.onnx dist/models/
           Copy-Item native/models/model.json dist/models/
           Copy-Item native/models/mel_slaney.npy dist/models/
           Copy-Item README-windows.txt dist/
-          # First-run launcher: downloads the model, then starts the app.
-          Copy-Item install.bat dist/
 
       - uses: actions/upload-artifact@v4
         with:

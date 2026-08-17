@@ -19,6 +19,11 @@ Everything runs locally.
   analyzed files hit the embedding cache and skip the model entirely.
 - **Search** filters by filename or section as you type.
 
+## Download
+
+Prebuilt macOS and Windows builds (model included, no extra setup) are on the
+[Releases page](../../releases/latest).
+
 ## Running from source
 
 Needs a Rust toolchain. The CLAP encoder weights are not in git (117 MB) —
