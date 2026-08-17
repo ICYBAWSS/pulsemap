@@ -1367,17 +1367,6 @@ impl State {
                 bold: false,
                 max_width: vw,
             });
-            let note = "Everything is analyzed locally — nothing leaves your machine";
-            let note_size = 13.0 * s;
-            let note_w = note.len() as f32 * note_size * 0.46;
-            labels.push(hud::Label {
-                text: note.to_string(),
-                pos: [(vw - note_w) * 0.5, vh * 0.5 + 22.0 * s],
-                size_px: note_size,
-                color: hud::COL_DIM,
-                bold: false,
-                max_width: vw,
-            });
             return (rects, labels);
         }
 
